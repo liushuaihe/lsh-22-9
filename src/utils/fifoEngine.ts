@@ -150,27 +150,32 @@ export function buildDeductionReplay(
   originalBatches: Batch[],
   updatedBatches: Batch[]
 ): DeductionReplayData {
-  const details: DeductionDetail[] = allocations.map((alloc, index) => {
-    const originalBatch = originalBatches.find(b => b.id === alloc.batchId);
-    const updatedBatch = updatedBatches.find(b => b.id === alloc.batchId);
-    
-    return {
-      sequence: index + 1,
-      batchId: alloc.batchId,
-      batchNo: originalBatch?.batchNo || '',
-      productionDate: originalBatch?.productionDate || '',
-      stockBefore: originalBatch?.availableQuantity || 0,
-      deductQuantity: alloc.quantity,
-      stockAfter: updatedBatch?.availableQuantity || 0
-    };
-  });
+  const allocationMap = new Map(allocations.map(a => [a.batchId, a.quantity]));
 
   const skuOriginalBatches = originalBatches.filter(
-    b => b.skuId === skuId && !b.isFrozen && b.status !== 'expired'
+    b => b.skuId === skuId && !b.isFrozen && b.status !== 'expired' && b.availableQuantity > 0
   );
   const skuUpdatedBatches = updatedBatches.filter(
     b => b.skuId === skuId && !b.isFrozen && b.status !== 'expired'
   );
+
+  const details: DeductionDetail[] = skuOriginalBatches
+    .sort((a, b) => new Date(a.productionDate).getTime() - new Date(b.productionDate).getTime())
+    .map((batch, index) => {
+      const deductQuantity = allocationMap.get(batch.id) || 0;
+      const updatedBatch = skuUpdatedBatches.find(b => b.id === batch.id);
+
+      return {
+        sequence: index + 1,
+        batchId: batch.id,
+        batchNo: batch.batchNo,
+        productionDate: batch.productionDate,
+        stockBefore: batch.availableQuantity,
+        deductQuantity,
+        stockAfter: updatedBatch?.availableQuantity ?? batch.availableQuantity
+      };
+    });
+
   const skuStockBefore = skuOriginalBatches.reduce((sum, b) => sum + b.availableQuantity, 0);
   const skuStockAfter = skuUpdatedBatches.reduce((sum, b) => sum + b.availableQuantity, 0);
 
