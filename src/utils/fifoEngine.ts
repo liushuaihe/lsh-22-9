@@ -165,11 +165,22 @@ export function buildDeductionReplay(
     };
   });
 
+  const skuOriginalBatches = originalBatches.filter(
+    b => b.skuId === skuId && !b.isFrozen && b.status !== 'expired'
+  );
+  const skuUpdatedBatches = updatedBatches.filter(
+    b => b.skuId === skuId && !b.isFrozen && b.status !== 'expired'
+  );
+  const skuStockBefore = skuOriginalBatches.reduce((sum, b) => sum + b.availableQuantity, 0);
+  const skuStockAfter = skuUpdatedBatches.reduce((sum, b) => sum + b.availableQuantity, 0);
+
   return {
     operationId: generateId(),
     skuId,
     skuName,
     totalQuantity,
+    skuStockBefore,
+    skuStockAfter,
     details,
     createdAt: new Date().toISOString()
   };

@@ -66,6 +66,8 @@ export interface DeductionReplayData {
   skuId: string;
   skuName: string;
   totalQuantity: number;
+  skuStockBefore: number;
+  skuStockAfter: number;
   details: DeductionDetail[];
   createdAt: string;
 }

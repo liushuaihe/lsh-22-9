@@ -11,8 +11,8 @@ interface DeductionReplayModalProps {
 export function DeductionReplayModal({ isOpen, onClose, replayData }: DeductionReplayModalProps) {
   if (!isOpen || !replayData) return null;
 
-  const totalStockBefore = replayData.details.reduce((sum, d) => sum + d.stockBefore, 0);
-  const totalStockAfter = replayData.details.reduce((sum, d) => sum + d.stockAfter, 0);
+  const totalStockBefore = replayData.skuStockBefore;
+  const totalStockAfter = replayData.skuStockAfter;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
